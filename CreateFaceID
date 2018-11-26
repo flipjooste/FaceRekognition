@@ -1,0 +1,30 @@
+import boto3
+import cx_Oracle
+from PIL import Image
+
+s3 = boto3.resource('s3')
+sql = """select m.member_id,m.first_name,m.surname,me.media_file,me.media_id from members m , media me where m.member_id = me.member_id and me.MEDIA_FORMAT_ID='MP' order by me.media_id"""
+imagePath = 'g:/PythonApps/'
+connection = cx_Oracle.connect("church", "Church123#", "www.rcgmembers.com/PDB1.a425572.oraclecloud.internal")
+cursor = connection.cursor()
+cursor.execute(sql)
+
+res = cursor.fetchall()
+i=0;
+
+for row in res:
+    if i> 1000:break
+    imageBlob = row[3]
+    image = row[0] + '_' + row[1] + '_' + row[2] + '_' + str(row[4])
+    print(image)
+    #open a new file in binary mode
+    imageFile = open(imagePath+image+'.png','wb')
+    #write the data to the file
+    imageFile.write(imageBlob.read())
+    imageFile.close()
+    file = open(imagePath+image+'.png','rb')
+    object = s3.Object('pmmfacesbucket','index/'+ imagePath+image+'.png')
+    ret = object.put(Body=file,Metadata={'FullName':row[1] + ' ' + row[2]})
+    i=i+1
+
+cursor.close()
