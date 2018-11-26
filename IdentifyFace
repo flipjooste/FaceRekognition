@@ -1,29 +1,54 @@
 import boto3
 import io
 from PIL import Image
+import cv2
 
 rekognition = boto3.client('rekognition', region_name='eu-west-1')
 dynamodb = boto3.client('dynamodb', region_name='eu-west-1')
+cam = cv2.VideoCapture(0)
+cv2.namedWindow("test")
+img_counter = 0
 
-image = Image.open('g:/PythonApps/304_GRESHEN_MOYO_10000240.png')
-stream = io.BytesIO()
-image.save(stream, format="png")
-image_binary = stream.getvalue()
+while True:
+    ret, frame = cam.read()
+    cv2.imshow("test", frame)
+    if not ret:
+        break
+    k = cv2.waitKey(1)
 
-response = rekognition.search_faces_by_image(
-    CollectionId='pmmfacescollection',
-    Image={'Bytes': image_binary}
-)
+    if k%256 == 27:
+        # ESC pressed
+        print("Escape hit, closing...")
+        break
+    elif k%256 == 32:
+        # SPACE pressed
+        img_name = "C:/Users/User/Pictures/Camera Roll/webcam.png"
+        cv2.imwrite(img_name, frame)
+        print("{} written!".format(img_name))
+        image = Image.open('C:/Users/User/Pictures/Camera Roll/webcam.png')
+        stream = io.BytesIO()
+        image.save(stream, format="png")
+        image_binary = stream.getvalue()
 
-for match in response['FaceMatches']:
-    print(match['Face']['FaceId'], match['Face']['Confidence'])
+        response = rekognition.search_faces_by_image(
+            CollectionId='pmmfacescollection',
+            Image={'Bytes': image_binary}
+        )
+        print('Send to AWS....')
+        for match in response['FaceMatches']:
+            print(match['Face']['FaceId'], match['Face']['Confidence'])
 
-    face = dynamodb.get_item(
-        TableName='pmmfacestable',
-        Key={'RekognitionId': {'S': match['Face']['FaceId']}}
-    )
+            face = dynamodb.get_item(
+                TableName='pmmfacestable',
+                Key={'RekognitionId': {'S': match['Face']['FaceId']}}
+            )
 
-    if 'Item' in face:
-        print(face['Item']['FullName']['S'])
-    else:
-        print('no match found in person lookup')
+            if 'Item' in face:
+                print(face['Item']['FullName']['S'])
+            else:
+                print('no match found in person lookup')
+        print('Identified......')
+cam.release()
+
+cv2.destroyAllWindows()
+
