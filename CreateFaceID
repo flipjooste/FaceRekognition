@@ -1,6 +1,8 @@
 import boto3
 import cx_Oracle
 from PIL import Image
+import geopandas as gpd
+
 
 s3 = boto3.resource('s3')
 sql = """select m.member_id,m.first_name,m.surname,me.media_file,me.media_id from members m , media me where m.member_id = me.member_id and me.MEDIA_FORMAT_ID='MP' order by me.media_id"""

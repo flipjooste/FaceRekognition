@@ -21,6 +21,7 @@ while True:
         print("Escape hit, closing...")
         break
     elif k%256 == 32:
+        print('Take photo.....')
         # SPACE pressed
         img_name = "C:/Users/User/Pictures/Camera Roll/webcam.png"
         cv2.imwrite(img_name, frame)
@@ -29,6 +30,7 @@ while True:
         stream = io.BytesIO()
         image.save(stream, format="png")
         image_binary = stream.getvalue()
+        print('Save photo.....')
 
         response = rekognition.search_faces_by_image(
             CollectionId='pmmfacescollection',
