@@ -138,9 +138,9 @@ b['START_DATE']=pd.to_datetime(b['START_DATE'])
 
 # In[98]:
 
-
-b['LAT_START']=pd.to_numeric(new[0])
-b['LON_START']=pd.to_numeric(new[1])
+new=b.start_gps.str.split(',',n=1,expand=True)
+b['lat_start']=pd.to_numeric(new[0])
+b['lon_start']=pd.to_numeric(new[1])
 
 
 # In[99]:
@@ -208,7 +208,7 @@ r.index=r.capture_date
 # In[8]:
 
 
-b=pd.merge(b,r[['ROUTE_GUID','AGENT_GUID']],on='ROUTE_GUID',how='inner')
+b=pd.merge(b,r[['route_guid','agent_guid']],on='route_guid',how='inner')
 
 
 # In[76]:
@@ -228,17 +228,6 @@ r.head()
 
 b[['start_date','stop_date']].to_csv('g:/gde/bus/gpstime.csv')
 
-
-# In[12]:
-
-
-new=b.start_gps.str.split(',',n=1,expand=True)
-
-
-# In[33]:
-
-
-s.dtypes
 
 
 # In[26]:
